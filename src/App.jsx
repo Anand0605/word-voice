@@ -2,93 +2,43 @@ import React, { useState } from 'react';
 import './App.css';
 
 const App = () => {
-  const [inputText, setInputText] = useState('');
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
+  const [wordMeaning, setWordMeaning] = useState(null)
+  const [input, setInput] = useState('')
 
-  const fetchData = async () => {
-    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${inputText}`;
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log(data)
-      setResult(data);
-      setError(null); // Clear any previous errors
-    } catch (error) {
-      setError(error.message);
-      setResult(null); // Clear previous results if there's an error
-    }
-  };
-
-  const handleSearch = () => {
-    if (inputText) {
-      fetchData();
-    }
-  };
-
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('Speech Synthesis is not supported in this browser.');
-    }
-  };
+  const getMeaning = async () => {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${input}`)
+    const data = await res.json()
+    console.log(data)
+    setWordMeaning(data)
+  }
 
   return (
-    <div className='main'>
-      <div className="center-div">
-            <div className="search">
-                <input
-                   type="text"
-                    placeholder="Type text...."
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-               />
-                <button onClick={handleSearch}>Search</button>
-             </div>
-             <div className="all-result">
-          {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-          {result && (
-            <div>
-              {result.map((entry, index) => (
-                <div key={index}>
-                  <div className='search-result'>
-                    {entry.word}
-                    <button className='sound-btn' onClick={() => speakText(entry.word)}>🔊</button>
-                  </div>
-                  {entry.meanings.length > 0 && (
-                    <div>
-                      <h4>
-                        {entry.meanings[0].partOfSpeech}
-
-                      </h4>
-                      <ul>
-                        {entry.meanings[0].definitions.map((definition, j) => (
-                          <li key={j}>
-                            {definition.definition}
-
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+    <>
+      <div>Dictionary App</div>
+      <input 
+        type="text"
+        placeholder='type input....'
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+      />
+      <button onClick={getMeaning}>search</button>
+      {wordMeaning && wordMeaning.length > 0 && (
+        <div>
+          <h2>{wordMeaning[0].word}</h2>
+          <p><strong>Phonetic:</strong> {wordMeaning[0].phonetic}</p>
+          {wordMeaning[0].meanings.map((meaning, index) => (
+            <div key={index}>
+              <p><strong>Part of Speech:</strong> {meaning.partOfSpeech}</p>
+              {meaning.definitions.map((definition, defIndex) => (
+                <p key={defIndex}>
+                  <strong>Definition:</strong> {definition.definition}
+                </p>
               ))}
             </div>
-          )}
+          ))}
         </div>
-        <div>
-        </div>
-       
-      </div>
-    </div>
-
-
+      )}
+    </>
   );
 };
 
